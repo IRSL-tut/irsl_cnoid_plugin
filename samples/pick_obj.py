@@ -19,21 +19,23 @@ def get_picked():
 class PickedObject(object):
     """
     Examples:
-        >>> di = DrawInterface()
-        >>> po = PickedObject(di=di)
-        >>> di.addObject(make_box(0))
-        >>> di.addObject(make_box(1))
-        >>> di.addObject(make_box(2))
-        >>> di.addObject(make_box(3))
-        >>> di.addObject(make_box(4))
-        >>> di.addObject(make_box(5))
+        >>> po = PickedObject()
+        >>> po.addObject(make_box(0))
+        >>> po.addObject(make_box(1))
+        >>> po.addObject(make_box(2))
+        >>> po.addObject(make_box(3))
+        >>> po.addObject(make_box(4))
+        >>> po.addObject(make_box(5))
         # initialize objects
         >>> po.genShapeMap()
         # start picking
+        >>> po.getPickedShape() ## get picked
     """
     def __init__(self, di=None, highLight=True):
         self.picked_name_list = []
         self.shape_map = {}
+        self.obj_list = []
+        self.obj_map = {}
         self.di = DrawInterface() if di is None else di
         self.highLight = highLight
         self.lock = Lock()
@@ -42,7 +44,32 @@ class PickedObject(object):
     def __del__(self):
         self.connection.disconnect()
 
-    def genShapeMap(self):
+    def addObject(self, obj, update=True, hook=True):
+        """This method is overrided, just passing arguments to addPyObject
+        """
+        self._addPyObject(obj, update=update, hook=hook)
+
+    def addObjects(self, objlst, update=True, hook=True):
+        """Adding objects to be drawn
+
+        Args:
+            objlst ( list[cnoid.Util.SgNode] ): list of objects to be drawn
+            update (boolean, default = False) : if True, rendering scene immediately
+
+        """
+        tp=type(objlst)
+        if tp is list or tp is tuple:
+            for obj in objlst[:-1]:
+                self._addPyObject(obj, False, hook=hook)
+            self._addPyObject(objlst[-1], update=update, hook=hook)
+        else:
+            self._addPyObject(objlst, update=update, hook=hook)
+
+    def _addPyObject(self, obj, update=True, hook=True):
+        self.obj_list.append(obj)
+        self.di.addPyObject(obj, update=update, hook=hook)
+
+    def genShapeMap(self, generateObjectMap=True):
         with self.lock:
             self.shape_map = {}
             for shape, coords in mkshapes.extractShapes( self.di.SgPosTransform ):
@@ -51,12 +78,21 @@ class PickedObject(object):
                 self.shape_map[shape.name] = shape
                 if self.highLight:
                     _highlight(shape, on=False, notify=False)
+            if generateObjectMap:
+                for obj in self.obj_list:
+                    self.obj_map[ obj.object.name ] = obj
             self.di.flush()
 
     def clearPicked(self):
         with self.lock:
             self.picked_name_list = []
-        self.genShapeMap()
+        self.genShapeMap() ## off high-light
+
+    def clearAll(self):
+        self.di.clear()
+        self.obj_list = []
+        self.obj_map = {}
+        self.clearPicked()
 
     def _callback_pick(self, name):
         with self.lock:
@@ -65,9 +101,14 @@ class PickedObject(object):
                 if self.highLight and name in self.shape_map:
                     _highlight(self.shape_map[name])
 
-    def getPicked(self):
-        return [ self.shape_map[p] for p in self.picked_name_list if p in self.shape_map ]
+    def getPickedName(self):
+        return self.picked_name_list
 
+    def getPickedObject(self):
+        return [ self.obj_map[p] for p in self.picked_name_list if p in self.obj_map ]
+
+    def getPickedShape(self):
+        return [ self.shape_map[p] for p in self.picked_name_list if p in self.shape_map ]
 
 #
 # gen picked_target
