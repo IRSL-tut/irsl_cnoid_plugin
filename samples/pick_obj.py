@@ -79,14 +79,28 @@ _mat_list = [( coordinates.Z, coordinates.Y),
              ( coordinates.X, coordinates.Y),
              (-coordinates.X, coordinates.Y),
              ( coordinates.Y, -coordinates.Z),
-             (-coordinates.Y,  coordinates.Z) ]
+             (-coordinates.Y,  coordinates.Z),
+             (fv(math.sqrt(1/3), math.sqrt(1/3),  math.sqrt(1/3)), fv(math.sqrt(1/2), 0, -math.sqrt(1/2))),
+             (fv(math.sqrt(1/3), -math.sqrt(1/3), math.sqrt(1/3)), fv(math.sqrt(1/2), 0, -math.sqrt(1/2))),
+             (fv(-math.sqrt(1/3), math.sqrt(1/3), math.sqrt(1/3)), fv(0, math.sqrt(1/2), -math.sqrt(1/2))),
+             (fv(math.sqrt(1/3), math.sqrt(1/3),  -math.sqrt(1/3)), fv(math.sqrt(1/2), 0, math.sqrt(1/2))),
+             (fv(math.sqrt(1/3), -math.sqrt(1/3), -math.sqrt(1/3)), fv(math.sqrt(1/2), 0, math.sqrt(1/2))),
+             (fv(-math.sqrt(1/3), math.sqrt(1/3), -math.sqrt(1/3)), fv(0, math.sqrt(1/2), math.sqrt(1/2))),
+             ]
 
 _col_list = [(0, 0, 1),
              (0, 1, 1),
              (1, 0, 0),
-             (1, 0, 1)
+             (1, 0, 1),
              (0, 1, 0),
-             (1, 1, 0), ]
+             (1, 1, 0),
+             (1, 0.5, 0), ## 1
+             (0, 0.5, 1), ## 4
+             (0.5, 1, 0), ## 2
+             (0.5, 0, 1), ## 5
+             (0, 1, 0.5), ## 3
+             (1, 0, 0.5), ## 6
+             ]
 
 def _make_mat(index=0):
     index = index % len(_mat_list)
