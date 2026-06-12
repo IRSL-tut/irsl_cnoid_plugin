@@ -30,7 +30,6 @@ else()
   Message ("Build(pybind11) : IRSLPlugin (under choreonoid/ext)")
   # Build as a bundled project / under ext
   target_link_libraries(${TARGET}
-    ${catkin_LIBRARIES}
-    CnoidBody CnoidUtil CnoidBase
+    CnoidIRSLPlugin CnoidBody CnoidUtil CnoidBase
     )
 endif()
