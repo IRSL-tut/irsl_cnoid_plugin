@@ -24,9 +24,12 @@ public:
     Impl() = delete;
     Impl(IRSLPlugin *_self) {
         self = _self;
+    }
+
+    void initialize() {
         uniq_id = SceneWidget::issueUniqueCustomModeId();
         SceneView::instance()->sceneWidget()->activateCustomMode(this, uniq_id);
-        DEBUG_STREAM(" Impl : " << uniq_id );
+        DEBUG_STREAM(" initialize : " << uniq_id );
     }
 
     IRSLPlugin *self;
@@ -91,8 +94,8 @@ public:
             }
         }
 
-        return false;
-        // return true; // process event after here
+        return false; // process event after here
+        //return true; // do not process event after here
     };
 };
 
@@ -107,7 +110,7 @@ IRSLPlugin::IRSLPlugin()
     : Plugin("IRSL")
 {
     DEBUG_PRINT();
-    setActivationPriority(-99);
+    setActivationPriority(99);
     instance_ = this;
 
     impl = new Impl(this);
@@ -118,6 +121,7 @@ IRSLPlugin::~IRSLPlugin()
 }
 bool IRSLPlugin::initialize()
 {
+    impl->initialize();
     DEBUG_STREAM(" FINISH IRSLPlugin initialize");
     return true;
 }
