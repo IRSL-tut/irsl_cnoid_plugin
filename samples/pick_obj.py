@@ -1,5 +1,5 @@
 from threading import Lock
-import cnoid.IRSLPlugin
+from cnoid.IRSLPlugin import IRSLPlugin
 
 def _highlight(obj, on=True, notify=True):
     mat = obj.material
@@ -39,7 +39,7 @@ class PickedObject(object):
         self.di = DrawInterface() if di is None else di
         self.highLight = highLight
         self.lock = Lock()
-        self.connection = cnoid.IRSLPlugin.sigPickedName().connect( self._callback_pick )
+        self.connection = IRSLPlugin.instance().sigPickedName().connect( self._callback_pick )
 
     def __del__(self):
         self.connection.disconnect()

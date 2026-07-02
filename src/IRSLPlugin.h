@@ -17,6 +17,7 @@ public:
     virtual const char* description() const override;
 
     SignalProxy<void(const std::string&)> sigPickedName();
+    SignalProxy<void(const std::string&, int, int)> sigPickedNamePoint();
 private:
     class Impl;
     Impl *impl;

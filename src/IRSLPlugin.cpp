@@ -38,8 +38,11 @@ public:
     SignalProxy<void(const std::string&)> sigPickedName() {
         return buttonPressedFunc;
     };
+    SignalProxy<void(const std::string&, int x, int y)> sigPickedNamePoint() {
+        return buttonPressedFuncPoint;
+    };
     Signal<void(const std::string&)> buttonPressedFunc;
-
+    Signal<void(const std::string&, int, int)> buttonPressedFuncPoint;
 #if 0
     //// overrides : SceneWidgetEventHandler
     virtual void onSceneModeChanged(SceneWidgetEvent* event) override;
@@ -93,6 +96,7 @@ public:
                 buttonPressedFunc(name);
             }
         }
+        buttonPressedFuncPoint("", event->x(), event->y());
 
         return false; // process event after here
         //return true; // do not process event after here
@@ -148,5 +152,8 @@ SignalProxy<void(const std::string&)> IRSLPlugin::sigPickedName()
 {
     return impl->sigPickedName();
 }
-
+SignalProxy<void(const std::string&, int, int)> IRSLPlugin::sigPickedNamePoint()
+{
+    return impl->sigPickedNamePoint();
+}
 CNOID_IMPLEMENT_PLUGIN_ENTRY(IRSLPlugin);
