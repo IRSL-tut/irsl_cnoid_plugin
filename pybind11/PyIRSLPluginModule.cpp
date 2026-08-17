@@ -27,5 +27,6 @@ PYBIND11_MODULE(IRSLPlugin, m)
         .def_static("instance", &IRSLPlugin::instance, py::return_value_policy::reference)
         .def("sigPickedName", &IRSLPlugin::sigPickedName)
         .def("sigPickedNamePoint", &IRSLPlugin::sigPickedNamePoint)
+        .def("selectCallback", &IRSLPlugin::selectCallback)
     ;
 }

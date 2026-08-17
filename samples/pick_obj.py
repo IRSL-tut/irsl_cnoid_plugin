@@ -1,3 +1,4 @@
+#exec(open('/choreonoid_ws/install/share/irsl_choreonoid/sample/irsl_import.py').read())
 from threading import Lock
 from cnoid.IRSLPlugin import IRSLPlugin
 
@@ -69,7 +70,7 @@ class PickedObject(object):
         self.obj_list.append(obj)
         self.di.addPyObject(obj, update=update, hook=hook)
 
-    def genShapeMap(self, generateObjectMap=True):
+    def genShapeMap(self, generateObjectMap=True, addName=True):
         with self.lock:
             self.shape_map = {}
             for shape, coords in mkshapes.extractShapes( self.di.SgPosTransform ):
@@ -159,3 +160,29 @@ def make_box(index=0, length=0.25, name=''):
     cc.translate(fv(0, 0, length*0.5))
     bx.newcoords(cc)
     return bx
+
+def makeSimpleAxes(size=0.1, length=0.4, length_xy=0.25, name='', color=0, coords=None):
+    if type(color) is int:
+        _col = _col_list[color%len(_col_list)]
+    else:
+        _col = color
+    xcds = coordinates(fv(length_xy*0.5, 0, 0))
+    ycds = coordinates(fv(0, length_xy*0.5, 0))
+    zcds = coordinates(fv(0, 0, length*0.5))
+    xobj = mkshapes.makeBox(x=length_xy, y=size,      z=size,   coords=xcds, wrapped=False, color=_col)
+    yobj = mkshapes.makeBox(x=size,      y=length_xy, z=size,   coords=ycds, wrapped=False)
+    zobj = mkshapes.makeBox(x=size,      y=size,      z=length, coords=zcds, wrapped=False)
+    mat_ = xobj.getChild(0).material
+    yobj.getChild(0).setMaterial(mat_)
+    zobj.getChild(0).setMaterial(mat_)
+    oobj = cutil.SgPosTransform()
+    oobj.addChild(xobj)
+    oobj.addChild(yobj)
+    oobj.addChild(zobj)
+    trs = cutil.SgPosTransform()
+    trs.addChild(oobj)
+    ret = mkshapes.coordsWrapper(trs, original_object=oobj)
+    if coords is not None:
+        ret.newcoords(coords)
+    ret.object.name = name
+    return ret

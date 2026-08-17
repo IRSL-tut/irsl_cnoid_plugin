@@ -18,6 +18,9 @@ public:
 
     SignalProxy<void(const std::string&)> sigPickedName();
     SignalProxy<void(const std::string&, int, int)> sigPickedNamePoint();
+
+    void selectCallback(int type = 0);
+    void setRegexp(const std::string &regexp);
 private:
     class Impl;
     Impl *impl;

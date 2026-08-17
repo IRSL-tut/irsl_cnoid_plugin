@@ -6,6 +6,8 @@
 #include <fmt/format.h>
 
 #include "IRSLPlugin.h"
+#include <functional>
+#include <regex>
 
 //#define IRSL_DEBUG
 #include "irsl_debug.h"
@@ -29,11 +31,13 @@ public:
     void initialize() {
         uniq_id = SceneWidget::issueUniqueCustomModeId();
         SceneView::instance()->sceneWidget()->activateCustomMode(this, uniq_id);
+        selectCallback();
         DEBUG_STREAM(" initialize : " << uniq_id );
     }
 
     IRSLPlugin *self;
     int uniq_id;
+    std::regex re_match;
 
     SignalProxy<void(const std::string&)> sigPickedName() {
         return buttonPressedFunc;
@@ -59,7 +63,85 @@ public:
     virtual bool onScrollEvent(SceneWidgetEvent* event) override;
     virtual void onFocusChanged(SceneWidgetEvent* event, bool on) override;
     virtual bool onContextMenuRequest(SceneWidgetEvent* event) override;
+    // shape
 #endif
+    std::function <void(SceneWidgetEvent*)> clicked_callback;
+    void _onlyShape(SceneWidgetEvent* event) {
+        SgNodePath enp = event->nodePath();
+        int shape_id = SgNode::findClassId<SgShape>();
+        for (int i = 0 ; i < enp.size(); i++) {
+            SgNode *ptr = enp[i];
+            if ( ptr->classId() == shape_id ) {
+                const std::string name(ptr->name());
+                buttonPressedFunc(name);
+            }
+        }
+    }
+    void _namedShape(SceneWidgetEvent* event) {
+        SgNodePath enp = event->nodePath();
+        int shape_id = SgNode::findClassId<SgShape>();
+        for (int i = 0 ; i < enp.size(); i++) {
+            SgNode *ptr = enp[i];
+            if ( ptr->classId() == shape_id && !ptr->name().empty() ) {
+                const std::string name(ptr->name());
+                buttonPressedFunc(name);
+            }
+        }
+    }
+    void _namedNode(SceneWidgetEvent* event) {
+        SgNodePath enp = event->nodePath();
+        for (int i = enp.size() - 1; i >= 0; i--) {
+            SgNode *ptr = enp[i];
+            if ( !ptr->name().empty() ) {
+                const std::string name(ptr->name());
+                buttonPressedFunc(name);
+            }
+        }
+    }
+    void _matchedNode(SceneWidgetEvent* event) {
+        SgNodePath enp = event->nodePath();
+        for (int i = enp.size() - 1; i >= 0; i--) {
+            SgNode *ptr = enp[i];
+            if ( !ptr->name().empty() ) {
+                const std::string name(ptr->name());
+                if ( std::regex_match(name, re_match) ) {
+                    buttonPressedFunc(name);
+                }
+            }
+        }
+    }
+    void _clickedPoint(SceneWidgetEvent* event) {
+        SgNodePath enp = event->nodePath();
+        if ( enp.size() > 0 ) {
+            buttonPressedFuncPoint("1", event->x(), event->y());
+        } else {
+            buttonPressedFuncPoint("0", event->x(), event->y());
+        }
+    }
+    void selectCallback(int type = 0) {
+        switch(type) {
+        case 1:
+            clicked_callback = std::bind(&IRSLPlugin::Impl::_namedShape, this, std::placeholders::_1);
+            break;
+        case 2:
+            clicked_callback = std::bind(&IRSLPlugin::Impl::_namedNode, this, std::placeholders::_1);
+            break;
+        case 3:
+            clicked_callback = std::bind(&IRSLPlugin::Impl::_matchedNode, this, std::placeholders::_1);
+            break;
+        case 4:
+            clicked_callback = std::bind(&IRSLPlugin::Impl::_clickedPoint, this, std::placeholders::_1);
+            break;
+        default:
+            clicked_callback = std::bind(&IRSLPlugin::Impl::_onlyShape, this, std::placeholders::_1);
+        }
+    }
+    virtual bool onButtonPressEvent(SceneWidgetEvent* event) override {
+        clicked_callback(event);
+        return false; // process event after here
+        //return true; // do not process event after here
+    }
+#if 0
     virtual bool onButtonPressEvent(SceneWidgetEvent* event) override {
         //DEBUG_STREAM(" IRSL: press");
 
@@ -101,6 +183,7 @@ public:
         return false; // process event after here
         //return true; // do not process event after here
     };
+#endif
 };
 
 } //// namespace cnoid
@@ -155,5 +238,13 @@ SignalProxy<void(const std::string&)> IRSLPlugin::sigPickedName()
 SignalProxy<void(const std::string&, int, int)> IRSLPlugin::sigPickedNamePoint()
 {
     return impl->sigPickedNamePoint();
+}
+void IRSLPlugin::selectCallback(int type)
+{
+    impl->selectCallback(type);
+}
+void IRSLPlugin::setRegexp(const std::string &regexp)
+{
+    impl->re_match = std::regex(regexp);
 }
 CNOID_IMPLEMENT_PLUGIN_ENTRY(IRSLPlugin);
